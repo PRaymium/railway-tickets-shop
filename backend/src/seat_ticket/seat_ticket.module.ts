@@ -8,5 +8,7 @@ import { SeatTicketController } from './seat_ticket.controller';
   imports: [TypeOrmModule.forFeature([SeatTicket])],
   providers: [SeatTicketService],
   controllers: [SeatTicketController],
+
+  exports: [SeatTicketService],
 })
 export class SeatTicketModule {}

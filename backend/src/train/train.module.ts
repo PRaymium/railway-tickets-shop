@@ -8,5 +8,7 @@ import { TrainController } from './train.controller';
   imports: [TypeOrmModule.forFeature([Train])],
   controllers: [TrainController],
   providers: [TrainService],
+
+  exports: [TrainService],
 })
 export class TrainModule {}

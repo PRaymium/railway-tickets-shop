@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -25,7 +26,8 @@ export class Trip {
   @Column()
   destination_date: Date;
 
-  @OneToOne(() => Train, (train) => train.id)
+  @OneToOne(() => Train)
+  @JoinColumn()
   train: Train;
 
   @Column({ type: 'integer', default: 0 })

@@ -8,5 +8,7 @@ import { TripController } from './trip.controller';
   imports: [TypeOrmModule.forFeature([Trip])],
   controllers: [TripController],
   providers: [TripService],
+
+  exports: [TripService],
 })
 export class TripModule {}

@@ -5,7 +5,7 @@ import { SeatService } from './seat.service';
 import { SeatController } from './seat.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Seat], 'railway-tickets')],
+  imports: [TypeOrmModule.forFeature([Seat])],
   controllers: [SeatController],
   providers: [SeatService],
 

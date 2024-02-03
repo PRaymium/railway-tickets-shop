@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { TrainToCarriage } from 'src/train_to_carriage/train_to_carriage.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('carriage')
 export class Carriage {
@@ -14,4 +15,10 @@ export class Carriage {
 
   @Column()
   seats_count: number;
+
+  @OneToMany(
+    () => TrainToCarriage,
+    (trainToCarriage) => trainToCarriage.carriage,
+  )
+  trainToCarriage: TrainToCarriage[];
 }

@@ -11,6 +11,11 @@ export class TrainToCarriageService {
   ) {}
 
   findAll(): Promise<TrainToCarriage[]> {
-    return this.trainToCarriageRepository.find();
+    return this.trainToCarriageRepository.find({
+      relations: {
+        train: true,
+        carriage: true,
+      },
+    });
   }
 }

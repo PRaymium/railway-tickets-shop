@@ -11,6 +11,12 @@ export class TripService {
   ) {}
 
   findAll(): Promise<Trip[]> {
-    return this.tripRepository.find();
+    return this.tripRepository.find({
+      relations: {
+        train: true,
+        destination_city: true,
+        departure_city: true,
+      },
+    });
   }
 }
