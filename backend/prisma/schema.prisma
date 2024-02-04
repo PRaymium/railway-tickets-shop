@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model trip {
+  id                  Int      @id @default(autoincrement())
+  departure_date      DateTime
+  destination_date    DateTime
+  is_complete         Boolean  @default(false)
+  departure_city_id   Int
+  departure_city      city     @relation(name: "departure_city", fields: [departure_city_id], references: [id])
+  destination_city_id Int
+  destination_city    city     @relation(name: "destination_city", fields: [destination_city_id], references: [id])
+  train_id            Int      @unique
+  train               train    @relation(fields: [train_id], references: [id])
+}
+
+model city {
+  id               Int    @id @default(autoincrement())
+  name             String
+  trip_departure   trip[] @relation(name: "departure_city")
+  trip_destination trip[] @relation(name: "destination_city")
+}
+
+model train {
+  id            Int           @id @default(autoincrement())
+  trip          trip?
+  locomotive_id Int
+  locomotive    locomotive    @relation(fields: [locomotive_id], references: [id])
+  seat_ticket   seat_ticket[]
+  carriages     carriage[]    @relation("train_to_carriage")
+}
+
+model locomotive {
+  id    Int     @id @default(autoincrement())
+  type  Int
+  name  String  @unique
+  train train[]
+}
+
+model carriage {
+  id          Int     @id @default(autoincrement())
+  type        Int     @default(1)
+  seats_count Int
+  seat        seat[]
+  trains      train[] @relation("train_to_carriage")
+}
+
+model seat {
+  id          Int           @id @default(autoincrement())
+  num         Int
+  position    Int           @default(0)
+  carriage_id Int
+  carriage    carriage      @relation(fields: [carriage_id], references: [id])
+  seat_ticket seat_ticket[]
+}
+
+model seat_ticket {
+  id       Int     @id @default(autoincrement())
+  price    Int
+  is_buyed Boolean @default(false)
+  train_id Int
+  train    train   @relation(fields: [train_id], references: [id])
+  seat_id  Int
+  seat     seat    @relation(fields: [seat_id], references: [id])
+}

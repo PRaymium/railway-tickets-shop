@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Carriage } from './carriage.entity';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class CarriageService {
-  constructor(
-    @InjectRepository(Carriage)
-    private carriageRepository: Repository<Carriage>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  findAll(): Promise<Carriage[]> {
-    return this.carriageRepository.find();
+  findAll() {
+    return this.prisma.carriage.findMany();
   }
 }

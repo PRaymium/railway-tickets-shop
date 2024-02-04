@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Carriage } from './carriage.entity';
 import { CarriageService } from './carriage.service';
 import { CarriageController } from './carriage.controller';
+import { PrismaService } from 'src/prisma.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Carriage])],
-  providers: [CarriageService],
+  providers: [CarriageService, PrismaService],
   controllers: [CarriageController],
 })
 export class CarriageModule {}

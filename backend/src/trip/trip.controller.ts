@@ -1,13 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
 import { TripService } from './trip.service';
-import { Trip } from './trip.entity';
 
 @Controller('trip')
 export class TripController {
-  constructor(private tripService: TripService) {}
+  constructor(private readonly tripService: TripService) {}
 
   @Get()
-  getAll(): Promise<Trip[]> {
+  getAll() {
     return this.tripService.findAll();
+  }
+
+  @Get('with_free_places')
+  getAllWithFreePlacesInfo() {
+    return this.tripService.findAllWithFreePlacesInfo();
   }
 }

@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Seat } from './seat.entity';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class SeatService {
-  constructor(
-    @InjectRepository(Seat)
-    private seatRepository: Repository<Seat>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  findAll(): Promise<Seat[]> {
-    return this.seatRepository.find();
+  findAll() {
+    return this.prisma.seat.findMany();
   }
 }
