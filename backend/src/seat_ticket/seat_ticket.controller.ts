@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { SeatTicketService } from './seat_ticket.service';
 
-@Controller('seat_ticket')
+@Controller('seatTicket')
 export class SeatTicketController {
   constructor(private seatTicketService: SeatTicketService) {}
 
@@ -10,7 +10,7 @@ export class SeatTicketController {
     return this.seatTicketService.findAll();
   }
 
-  @Get('free_places_info')
+  @Get('freePlacesInfo')
   getgetFreePlacesInfo() {
     return this.seatTicketService.getFreePlacesInfoByTrainId([1, 2, 3]);
   }

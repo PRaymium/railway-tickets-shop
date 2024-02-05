@@ -35,12 +35,8 @@ export class TripService {
       );
 
       return {
-        tickets_info: {
-          free_places: placesInfoItem._count.id,
-          min_price: placesInfoItem._min.price,
-        },
-
         ...trip,
+        ...placesInfoItem,
       };
     });
 

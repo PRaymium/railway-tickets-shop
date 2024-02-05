@@ -1,6 +1,6 @@
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card class="q-dialog-plugin">
+    <q-card class="dialog-card q-dialog-plugin">
       <q-card-section class="row">
         <div class="text-h6">Приобрести билет</div>
         <q-space />
@@ -24,7 +24,54 @@
 
       <q-separator />
 
-      <q-card-section> Train seats select block</q-card-section>
+      <q-card-section>
+        <q-card class="carriage-card" v-for="n in 2" :key="n">
+          <q-card-section class="row items-center">
+            <div class="col">
+              <div class="row">
+                <div class="col">
+                  <div class="text-h6">Вагон №1</div>
+                  <div class="text-caption">Сидячий</div>
+                </div>
+                <q-space />
+                <div class="col text-right">
+                  <div class="text-subtitle1">Свободных мест: <b>40</b></div>
+                  <div class="text-subtitle1">от <b>5900</b>₽</div>
+                </div>
+              </div>
+            </div>
+            <div class="q-pl-sm">
+              <q-btn
+                color="grey"
+                round
+                flat
+                :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                @click="expanded = !expanded"
+              />
+            </div>
+          </q-card-section>
+
+          <q-slide-transition>
+            <div v-if="expanded">
+              <q-separator />
+              <q-card-section class="q-pa-none">
+                <q-table
+                  flat
+                  :columns="columns[1]"
+                  :rows="rows"
+                  row-key="id"
+                  :binary-state-sort="true"
+                  selection="multiple"
+                  :pagination="{
+                    rowsPerPage: 10,
+                  }"
+                >
+                </q-table>
+              </q-card-section>
+            </div>
+          </q-slide-transition>
+        </q-card>
+      </q-card-section>
 
       <q-card-actions align="right">
         <q-btn color="primary" label="Купить" @click="onOKClick" />
@@ -34,11 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import { useDialogPluginComponent } from 'quasar';
-import { type Ticket } from './TableTickets.vue';
+import { QTableProps, useDialogPluginComponent } from 'quasar';
 import { ref } from 'vue';
+import getFormattedDate from 'src/utils/getFormattedDate';
+import { TripWithFreePlacesInfo } from 'src/models/TripWithFreePlacesInfo';
 
-const props = defineProps<Ticket>();
+const props = defineProps<TripWithFreePlacesInfo>();
 
 defineEmits([...useDialogPluginComponent.emits]);
 
@@ -63,28 +111,89 @@ function onOKClick() {
 const ticketInfo = ref<{ label: string; value: string }[]>([
   {
     label: 'Пункт отправления',
-    value: props.departure,
+    value: props.departureCity,
   },
   {
     label: 'Пункт назначения',
-    value: props.destination,
+    value: props.destinationCity,
   },
   {
     label: 'Дата отправления',
-    value: getFormattedDate(props.departureTime),
+    value: getFormattedDate(props.departureDate),
   },
   {
     label: 'Дата прибытия',
-    value: getFormattedDate(props.destinationTime),
+    value: getFormattedDate(props.destinationDate),
   },
 ]);
 
-function getFormattedDate(date: Date): string {
-  const hours = date.getHours();
-  const hoursStr = ('0' + hours).slice(-2);
-  const minutes = date.getMinutes();
-  const minutesStr = ('0' + minutes).slice(-2);
+const expanded = ref(false);
 
-  return `${date.toLocaleDateString()} - ${hoursStr}:${minutesStr} `;
-}
+// 1 - сидячий вагон
+// 2 - плацкарт
+// 3 - купе
+// 4 - СВ
+const columns = ref<Record<number, QTableProps['columns']>>({
+  1: [
+    {
+      name: 'number',
+      label: 'Номер',
+      field: 'number',
+      required: true,
+      sortable: true,
+      align: 'center',
+    },
+    {
+      name: 'price',
+      label: 'Стоимость',
+      field: 'price',
+      required: true,
+      sortable: true,
+      align: 'center',
+      format: (val) => `${val}₽`,
+    },
+  ],
+  2: [
+    {
+      name: 'number',
+      label: 'Номер',
+      field: 'number',
+      required: true,
+      sortable: true,
+      align: 'center',
+    },
+    {
+      name: 'position',
+      label: 'Расположение',
+      field: 'position',
+      required: true,
+      sortable: true,
+      align: 'center',
+    },
+    {
+      name: 'price',
+      label: 'Стоимость',
+      field: 'price',
+      required: true,
+      sortable: true,
+      align: 'center',
+      format: (val) => `${val}₽`,
+    },
+  ],
+});
+
+const rows = ref([]);
 </script>
+
+<style lang="scss" scoped>
+@use 'sass:map';
+.dialog-card {
+  width: 100%;
+}
+
+.carriage-card {
+  &:not(:last-child) {
+    margin-bottom: map.get($space-lg, y);
+  }
+}
+</style>

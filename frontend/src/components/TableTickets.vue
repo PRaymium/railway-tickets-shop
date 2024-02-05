@@ -5,6 +5,10 @@
     :rows="rows"
     row-key="id"
     :binary-state-sort="true"
+    :loading="isLoading"
+    :pagination="{
+      rowsPerPage: 10,
+    }"
     @row-click="(evt, row) => onRowClick(row)"
   >
   </q-table>
@@ -14,14 +18,19 @@
 import { ref } from 'vue';
 import { QTableProps, useQuasar } from 'quasar';
 import TicketModal from 'components/TicketModal.vue';
+import Api from 'src/api/api';
+import getFormattedDate from 'src/utils/getFormattedDate';
+import { TripWithFreePlacesInfo } from 'src/models/TripWithFreePlacesInfo';
 
 const $q = useQuasar();
+
+const isLoading = ref(true);
 
 const columns = ref<QTableProps['columns']>([
   {
     name: 'departure',
     label: 'Пункт отправления',
-    field: 'departure',
+    field: 'departureCity',
     required: true,
     sortable: true,
     align: 'center',
@@ -29,30 +38,28 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'destination',
     label: 'Пункт назначения',
-    field: 'destination',
+    field: 'destinationCity',
     required: true,
     sortable: true,
     align: 'center',
   },
   {
-    name: 'departureTime',
-    label: 'Время отправления',
-    field: 'departureTime',
+    name: 'departureDate',
+    label: 'Дата отправления',
+    field: 'departureDate',
     required: true,
     sortable: true,
     align: 'center',
-    format: (date: Date) =>
-      `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`,
+    format: (date: Date) => getFormattedDate(date),
   },
   {
-    name: 'destinationTime',
-    label: 'Время прибытия',
-    field: 'destinationTime',
+    name: 'destinationDate',
+    label: 'Дата прибытия',
+    field: 'destinationDate',
     required: true,
     sortable: true,
     align: 'center',
-    format: (date: Date) =>
-      `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`,
+    format: (date: Date) => getFormattedDate(date),
   },
   {
     name: 'freePlaces',
@@ -65,7 +72,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'price',
     label: 'Стоимость',
-    field: 'price',
+    field: 'minPrice',
     required: true,
     sortable: true,
     align: 'center',
@@ -73,65 +80,15 @@ const columns = ref<QTableProps['columns']>([
   },
 ]);
 
-export interface Ticket {
-  id: string;
-  departure: string;
-  destination: string;
-  departureTime: Date;
-  destinationTime: Date;
-  freePlaces: number;
-  price: number;
-}
+const rows = ref<TripWithFreePlacesInfo[]>([]);
 
-const rows = ref<Ticket[]>([
-  {
-    id: '1',
-    departure: 'Липецк',
-    destination: 'Москва',
-    departureTime: new Date('2024-02-04'),
-    destinationTime: new Date('2024-02-05'),
-    freePlaces: 7,
-    price: 2440,
-  },
-  {
-    id: '2',
-    departure: 'Москва',
-    destination: 'Санкт-Петербург',
-    departureTime: new Date('2024-02-04'),
-    destinationTime: new Date('2024-02-05'),
-    freePlaces: 43,
-    price: 7540,
-  },
-  {
-    id: '3',
-    departure: 'Воронеж',
-    destination: 'Липецк',
-    departureTime: new Date('2024-02-04'),
-    destinationTime: new Date('2024-02-05'),
-    freePlaces: 23,
-    price: 5790,
-  },
-  {
-    id: '4',
-    departure: 'Воронеж',
-    destination: 'Тула',
-    departureTime: new Date('2024-02-04'),
-    destinationTime: new Date('2024-02-05'),
-    freePlaces: 15,
-    price: 4760,
-  },
-  {
-    id: '5',
-    departure: 'Санкт-Петербург',
-    destination: 'Тула',
-    departureTime: new Date('2024-02-04'),
-    destinationTime: new Date('2024-02-05'),
-    freePlaces: 8,
-    price: 4570,
-  },
-]);
+Api.getTripsWithTicketInfo().then((data) => {
+  if (!data) return;
+  rows.value.push(...data);
+  isLoading.value = false;
+});
 
-function onRowClick(row: Ticket) {
+function onRowClick(row: TripWithFreePlacesInfo) {
   $q.dialog({
     component: TicketModal,
     componentProps: {
