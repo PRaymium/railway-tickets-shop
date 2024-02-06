@@ -9,4 +9,9 @@ export class CarriageController {
   getAll() {
     return this.carriageService.findAll();
   }
+
+  @Get('withFreePlacesInfo')
+  getWithFreePlacesInfo() {
+    return this.carriageService.findManyWithFreePlacesInfoByTrainId(1);
+  }
 }

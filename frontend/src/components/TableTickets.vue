@@ -20,7 +20,7 @@ import { QTableProps, useQuasar } from 'quasar';
 import TicketModal from 'components/TicketModal.vue';
 import Api from 'src/api/api';
 import getFormattedDate from 'src/utils/getFormattedDate';
-import { TripWithFreePlacesInfo } from 'src/models/TripWithFreePlacesInfo';
+import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
 
 const $q = useQuasar();
 
@@ -92,7 +92,7 @@ function onRowClick(row: TripWithFreePlacesInfo) {
   $q.dialog({
     component: TicketModal,
     componentProps: {
-      ...row,
+      id: row.id,
     },
   });
 }

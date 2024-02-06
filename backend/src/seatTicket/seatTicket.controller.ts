@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { SeatTicketService } from './seat_ticket.service';
+import { SeatTicketService } from './seatTicket.service';
 
 @Controller('seatTicket')
 export class SeatTicketController {
@@ -11,7 +11,7 @@ export class SeatTicketController {
   }
 
   @Get('freePlacesInfo')
-  getgetFreePlacesInfo() {
+  getFreePlacesInfo() {
     return this.seatTicketService.getFreePlacesInfoByTrainId([1, 2, 3]);
   }
 }

@@ -7,75 +7,95 @@
         <q-btn icon="close" flat round dense @click="onDialogCancel" />
       </q-card-section>
 
-      <q-card-section>
-        <q-list>
-          <q-item
-            class="q-px-none"
-            v-for="(ticket, idx) of ticketInfo"
-            :key="idx"
+      <template v-if="isLoading">
+        <q-spinner color="primary" size="3em" />
+      </template>
+      <template v-else>
+        <q-card-section>
+          <q-list>
+            <q-item
+              class="q-px-none"
+              v-for="(ticket, idx) of listInfo"
+              :key="idx"
+            >
+              <q-item-section>
+                <q-item-label overline>{{ ticket.label }}</q-item-label>
+                <div>{{ ticket.value }}</div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section>
+          <q-card
+            class="carriage-card"
+            v-for="(carriage, idx) in trip?.train.carriages"
+            :key="carriage.id"
           >
-            <q-item-section>
-              <q-item-label overline>{{ ticket.label }}</q-item-label>
-              <div>{{ ticket.value }}</div>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-card-section>
-
-      <q-separator />
-
-      <q-card-section>
-        <q-card class="carriage-card" v-for="n in 2" :key="n">
-          <q-card-section class="row items-center">
-            <div class="col">
-              <div class="row">
-                <div class="col">
-                  <div class="text-h6">Вагон №1</div>
-                  <div class="text-caption">Сидячий</div>
-                </div>
-                <q-space />
-                <div class="col text-right">
-                  <div class="text-subtitle1">Свободных мест: <b>40</b></div>
-                  <div class="text-subtitle1">от <b>5900</b>₽</div>
+            <q-card-section class="row items-center">
+              <div class="col">
+                <div class="row">
+                  <div class="col-auto">
+                    <div class="text-h6">Вагон №{{ idx + 1 }}</div>
+                    <div class="text-caption">
+                      {{ CarriageTypes[carriage.type] }}
+                    </div>
+                  </div>
+                  <q-space />
+                  <div class="col-auto text-right">
+                    <div class="text-subtitle1">
+                      Свободных мест: <b>{{ carriage.free_places.count }}</b>
+                    </div>
+                    <div class="text-subtitle1">
+                      от <b>{{ carriage.free_places.min_price }}</b
+                      >₽
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="q-pl-sm">
-              <q-btn
-                color="grey"
-                round
-                flat
-                :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-                @click="expanded = !expanded"
-              />
-            </div>
-          </q-card-section>
-
-          <q-slide-transition>
-            <div v-if="expanded">
-              <q-separator />
-              <q-card-section class="q-pa-none">
-                <q-table
+              <div class="q-pl-sm">
+                <q-btn
+                  color="grey"
+                  round
                   flat
-                  :columns="columns[1]"
-                  :rows="rows"
-                  row-key="id"
-                  :binary-state-sort="true"
-                  selection="multiple"
-                  :pagination="{
-                    rowsPerPage: 10,
-                  }"
-                >
-                </q-table>
-              </q-card-section>
-            </div>
-          </q-slide-transition>
-        </q-card>
-      </q-card-section>
+                  :icon="
+                    carriage.expanded
+                      ? 'keyboard_arrow_up'
+                      : 'keyboard_arrow_down'
+                  "
+                  @click="carriage.expanded = !carriage.expanded"
+                />
+              </div>
+            </q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn color="primary" label="Купить" @click="onOKClick" />
-      </q-card-actions>
+            <q-slide-transition>
+              <div v-if="carriage.expanded">
+                <q-separator />
+                <q-card-section class="q-pa-none">
+                  <q-table
+                    flat
+                    :columns="seatsTableColumns[carriage.type]"
+                    :rows="seatsTableRows"
+                    row-key="id"
+                    :binary-state-sort="true"
+                    selection="multiple"
+                    :pagination="{
+                      rowsPerPage: 10,
+                    }"
+                  >
+                  </q-table>
+                </q-card-section>
+              </div>
+            </q-slide-transition>
+          </q-card>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn color="primary" label="Купить" @click="onOKClick" />
+        </q-card-actions>
+      </template>
     </q-card>
   </q-dialog>
 </template>
@@ -84,9 +104,17 @@
 import { QTableProps, useDialogPluginComponent } from 'quasar';
 import { ref } from 'vue';
 import getFormattedDate from 'src/utils/getFormattedDate';
-import { TripWithFreePlacesInfo } from 'src/models/TripWithFreePlacesInfo';
+import Api from 'src/api/api';
+import {
+  TripWithDetailedInfo,
+  CarriageTypes,
+} from 'src/models/tripWithDetailedInfo.dto';
 
-const props = defineProps<TripWithFreePlacesInfo>();
+interface Props {
+  id: string;
+}
+
+const props = defineProps<Props>();
 
 defineEmits([...useDialogPluginComponent.emits]);
 
@@ -108,36 +136,70 @@ function onOKClick() {
   // ...and it will also hide the dialog automatically
 }
 
-const ticketInfo = ref<{ label: string; value: string }[]>([
-  {
-    label: 'Пункт отправления',
-    value: props.departureCity,
-  },
-  {
-    label: 'Пункт назначения',
-    value: props.destinationCity,
-  },
-  {
-    label: 'Дата отправления',
-    value: getFormattedDate(props.departureDate),
-  },
-  {
-    label: 'Дата прибытия',
-    value: getFormattedDate(props.destinationDate),
-  },
-]);
+const isLoading = ref(true);
 
-const expanded = ref(false);
+const trip = ref<TripWithDetailedInfo>();
+
+enum locomotiveTypes {
+  'Стандартный' = 1,
+  'Скоростной' = 2,
+  'Сверхскоростной' = 3,
+}
+
+const listInfo = ref<{ label: string; value: string }[]>([]);
+
+Api.getTripWithDetailedInfoById(props.id).then((data) => {
+  if (!data) return;
+
+  console.log(data);
+
+  data.train.carriages.forEach((carriage) => {
+    carriage.expanded = false;
+  });
+
+  trip.value = data;
+
+  listInfo.value.push(
+    ...[
+      {
+        label: 'Пункт отправления',
+        value: trip.value.departureCity,
+      },
+      {
+        label: 'Пункт назначения',
+        value: trip.value.destinationCity,
+      },
+      {
+        label: 'Дата отправления',
+        value: getFormattedDate(trip.value.departureDate),
+      },
+      {
+        label: 'Дата прибытия',
+        value: getFormattedDate(trip.value.destinationDate),
+      },
+      {
+        label: 'Тип поезда',
+        value: locomotiveTypes[trip.value.train.locomotive.type],
+      },
+      {
+        label: 'Номер поезда',
+        value: trip.value?.train.locomotive.name,
+      },
+    ]
+  );
+
+  isLoading.value = false;
+});
 
 // 1 - сидячий вагон
 // 2 - плацкарт
 // 3 - купе
 // 4 - СВ
-const columns = ref<Record<number, QTableProps['columns']>>({
+const seatsTableColumns = ref<Record<number, QTableProps['columns']>>({
   1: [
     {
       name: 'number',
-      label: 'Номер',
+      label: 'Место',
       field: 'number',
       required: true,
       sortable: true,
@@ -156,7 +218,7 @@ const columns = ref<Record<number, QTableProps['columns']>>({
   2: [
     {
       name: 'number',
-      label: 'Номер',
+      label: 'Место',
       field: 'number',
       required: true,
       sortable: true,
@@ -182,7 +244,7 @@ const columns = ref<Record<number, QTableProps['columns']>>({
   ],
 });
 
-const rows = ref([]);
+const seatsTableRows = ref([]);
 </script>
 
 <style lang="scss" scoped>
