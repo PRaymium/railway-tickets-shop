@@ -7,7 +7,7 @@
     :binary-state-sort="true"
     :loading="isLoading"
     :pagination="{
-      rowsPerPage: 10,
+      rowsPerPage: 0,
     }"
     @row-click="(evt, row) => onRowClick(row)"
   >
@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { QTableProps, useQuasar } from 'quasar';
-import TicketModal from 'components/TicketModal.vue';
+import TripModal from 'components/TripModal.vue';
 import Api from 'src/api/api';
 import getFormattedDate from 'src/utils/getFormattedDate';
 import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
@@ -90,7 +90,7 @@ Api.getTripsWithTicketInfo().then((data) => {
 
 function onRowClick(row: TripWithFreePlacesInfo) {
   $q.dialog({
-    component: TicketModal,
+    component: TripModal,
     componentProps: {
       id: row.id,
     },

@@ -34,7 +34,7 @@ export class AppController {
 
   @Get('tripWithDetailedInfo/:id')
   async getTripWithDetailedInfo(
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<TripWithDetailedInfo> {
     const trip = await this.appService.findTripWithDetailedInfoById(+id);
 
@@ -55,7 +55,7 @@ export class AppController {
           return { ...carriage, id: carriage.id.toString() };
         }),
       },
-    } as TripWithDetailedInfo;
+    };
 
     return res;
   }

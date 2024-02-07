@@ -26,4 +26,19 @@ export class SeatTicketService {
       },
     });
   }
+
+  getTicketsWithSeatInfoByCarriageId(carriageId: number) {
+    return this.prisma.seat_ticket.findMany({
+      include: {
+        seat: true,
+      },
+      where: {
+        seat: {
+          is: {
+            carriage_id: carriageId,
+          },
+        },
+      },
+    });
+  }
 }

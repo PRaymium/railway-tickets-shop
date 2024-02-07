@@ -1,8 +1,9 @@
 import axios from 'axios';
+import TicketWithSeatInfo from 'src/models/ticketWithSeatInfo';
 import {
   TripWithDetailedInfoApi,
   TripWithDetailedInfo,
-} from 'src/models/tripWithDetailedInfo.dto';
+} from 'src/models/tripWithDetailedInfo';
 import {
   TripWithFreePlacesInfo,
   TripWithFreePlacesInfoApi,
@@ -38,6 +39,18 @@ class Api {
         destinationDate: new Date(data.destinationDate),
       } as TripWithDetailedInfo;
       return res;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getTicketsWithSeatInfoByCarriageId(carriageId: string) {
+    try {
+      const response = await axios.get(
+        `${URL}seatTicket/withSeatInfo/${carriageId}`
+      );
+      const data: TicketWithSeatInfo[] = response.data;
+      return data;
     } catch (error) {
       console.error(error);
     }

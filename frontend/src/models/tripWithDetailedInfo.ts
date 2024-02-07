@@ -1,3 +1,10 @@
+export enum CarriageTypes {
+  'Сидячий' = 1,
+  'Плацкарт' = 2,
+  'Купе' = 3,
+  'СВ' = 4,
+}
+
 interface TripWithDetailedInfoBase {
   id: string;
   departureCity: string;
@@ -16,16 +23,8 @@ interface TripWithDetailedInfoBase {
         count: number;
         min_price: number;
       };
-      expanded?: boolean;
     }[];
   };
-}
-
-export enum CarriageTypes {
-  'Сидячий' = 1,
-  'Плацкарт' = 2,
-  'Купе' = 3,
-  'СВ' = 4,
 }
 
 export interface TripWithDetailedInfoApi extends TripWithDetailedInfoBase {
