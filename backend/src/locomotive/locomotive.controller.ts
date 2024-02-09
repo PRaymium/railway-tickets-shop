@@ -6,7 +6,7 @@ export class LocomotiveController {
   constructor(private locomotiveService: LocomotiveService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.locomotiveService.findAll();
   }
 }

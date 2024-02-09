@@ -6,7 +6,7 @@ export class TrainController {
   constructor(private trainService: TrainService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.trainService.findAll();
   }
 }

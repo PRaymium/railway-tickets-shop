@@ -5,11 +5,11 @@ import { PrismaService } from 'src/prisma.service';
 export class SeatTicketService {
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
+  async findAll() {
     return this.prisma.seat_ticket.findMany();
   }
 
-  getFreePlacesInfoByTrainId(id: number[]) {
+  async getFreePlacesInfoByTrainId(id: number[]) {
     return this.prisma.seat_ticket.groupBy({
       by: ['train_id'],
       where: {
@@ -27,7 +27,7 @@ export class SeatTicketService {
     });
   }
 
-  getTicketsWithSeatInfoByCarriageId(carriageId: number) {
+  async getTicketsWithSeatInfoByCarriageId(carriageId: number) {
     return this.prisma.seat_ticket.findMany({
       include: {
         seat: true,
@@ -40,5 +40,36 @@ export class SeatTicketService {
         },
       },
     });
+  }
+
+  async buyTicketsByIds(ticketsIds: number[]) {
+    const buyedTickets = await this.prisma.seat_ticket.findMany({
+      where: {
+        is_buyed: true,
+        id: {
+          in: ticketsIds,
+        },
+      },
+    });
+
+    if (buyedTickets.length !== 0) {
+      return buyedTickets.map((ticket) => ticket.id);
+    } else {
+      try {
+        await this.prisma.seat_ticket.updateMany({
+          where: {
+            id: {
+              in: ticketsIds,
+            },
+          },
+          data: {
+            is_buyed: true,
+          },
+        });
+        return 1;
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
 }

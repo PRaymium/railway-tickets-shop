@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma.service';
 export class CarriageService {
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
+  async findAll() {
     return this.prisma.carriage.findMany();
   }
 

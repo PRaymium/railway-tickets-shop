@@ -82,7 +82,7 @@
                     dense
                     flat
                     :columns="carriageTicketsTableColumns[carriage.type]"
-                    :rows="carriageTicketsInfo[carriage.id]"
+                    :rows="displayedCarriageTicketsInfo[carriage.id]"
                     :row-key="(row: TicketWithSeatInfo) => row.id.toString()"
                     :binary-state-sort="true"
                     selection="multiple"
@@ -136,7 +136,7 @@
             size="1rem"
             color="primary"
             label="Купить"
-            @click="onOKClick"
+            @click="buyTicketsHandler"
           />
         </q-card-actions>
       </template>
@@ -309,6 +309,21 @@ const carriageTicketsInfo = ref<
   Record<TicketWithSeatInfo['seat']['carriageId'], TicketWithSeatInfo[]>
 >({});
 
+const displayedCarriageTicketsInfo = computed<typeof carriageTicketsInfo.value>(
+  () => {
+    const keys = Object.keys(carriageTicketsInfo.value);
+    const res: typeof carriageTicketsInfo.value = {};
+
+    keys.forEach((key: string) => {
+      res[+key] = carriageTicketsInfo.value[+key].filter(
+        (ticket) => !ticket.isBuyed
+      );
+    });
+
+    return res;
+  }
+);
+
 async function carriageClickHandler(carriageId: number) {
   carriageExpandedStates.value[carriageId] =
     !carriageExpandedStates.value[carriageId];
@@ -419,6 +434,36 @@ const selectedTickets = computed<Ticket[]>(() => {
 
 function ticketRemoveHandler(ticketIdx: number) {
   selectedTicketsRaw.value.splice(ticketIdx, 1);
+}
+
+const isBuyingLoading = ref(false);
+
+async function buyTicketsHandler() {
+  isBuyingLoading.value = true;
+
+  const ticketsIds = selectedTickets.value.reduce<number[]>(
+    (acc, ticket: Ticket) => {
+      acc.push(ticket.id);
+      return acc;
+    },
+    []
+  );
+  const data = await Api.buyTickets(ticketsIds);
+  if (data?.status === 'busy') {
+    if (!data.ticketsIds) return;
+
+    let alertString = '\n';
+
+    data.ticketsIds.forEach((ticketId) => {
+      const ticket = selectedTickets.value.find(
+        (ticket) => ticket.id === ticketId
+      );
+
+      const string = `Билет №${ticket?.number} в вагоне №${ticket?.carriage.number}`;
+      alertString += string + '\n';
+    });
+    alert(`Некоторые билеты недоступны для покупки:${alertString}`);
+  }
 }
 </script>
 

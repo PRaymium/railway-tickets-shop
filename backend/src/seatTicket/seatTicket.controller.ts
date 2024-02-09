@@ -1,18 +1,19 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { SeatTicketService } from './seatTicket.service';
 import TicketWithSeatInfo from './dto/ticketWithSeatInfo.dto';
+import BuyedTicket from './dto/buyedTicket.dto';
 
 @Controller('seatTicket')
 export class SeatTicketController {
   constructor(private seatTicketService: SeatTicketService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.seatTicketService.findAll();
   }
 
   @Get('freePlacesInfo')
-  getFreePlacesInfo() {
+  async getFreePlacesInfo() {
     return this.seatTicketService.getFreePlacesInfoByTrainId([1, 2, 3]);
   }
 
@@ -39,6 +40,24 @@ export class SeatTicketController {
         },
       };
     });
+
+    return res;
+  }
+
+  @Post('buy')
+  async buyTickets(
+    @Body() body: { ticketsIds: number[] },
+  ): Promise<BuyedTicket> {
+    const data = await this.seatTicketService.buyTicketsByIds(body.ticketsIds);
+
+    const res: BuyedTicket = {
+      status: 'complete',
+    };
+
+    if (Array.isArray(data)) {
+      res.status = 'busy';
+      res.ticketsIds = data;
+    }
 
     return res;
   }

@@ -6,12 +6,12 @@ export class CarriageController {
   constructor(private carriageService: CarriageService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.carriageService.findAll();
   }
 
   @Get('withFreePlacesInfo')
-  getWithFreePlacesInfo() {
+  async getWithFreePlacesInfo() {
     return this.carriageService.findManyWithFreePlacesInfoByTrainId(1);
   }
 }

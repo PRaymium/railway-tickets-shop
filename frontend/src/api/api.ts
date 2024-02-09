@@ -1,4 +1,5 @@
 import axios from 'axios';
+import BuyedTicket from 'src/models/buyedTicket';
 import TicketWithSeatInfo from 'src/models/ticketWithSeatInfo';
 import {
   TripWithDetailedInfoApi,
@@ -50,6 +51,18 @@ class Api {
         `${URL}seatTicket/withSeatInfo/${carriageId}`
       );
       const data: TicketWithSeatInfo[] = response.data;
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async buyTickets(ticketsIds: number[]) {
+    try {
+      const response = await axios.post(`${URL}seatTicket/buy`, {
+        ticketsIds: ticketsIds,
+      });
+      const data: BuyedTicket = response.data;
       return data;
     } catch (error) {
       console.error(error);

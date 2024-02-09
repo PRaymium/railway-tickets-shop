@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma.service';
 export class CityService {
   constructor(private prisma: PrismaService) {}
 
-  findAll() {
+  async findAll() {
     return this.prisma.city.findMany();
   }
 }

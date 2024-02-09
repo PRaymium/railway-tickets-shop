@@ -6,7 +6,7 @@ export class SeatController {
   constructor(private seatService: SeatService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.seatService.findAll();
   }
 }

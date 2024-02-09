@@ -6,7 +6,7 @@ export class CityController {
   constructor(private cityService: CityService) {}
 
   @Get()
-  getAll() {
+  async getAll() {
     return this.cityService.findAll();
   }
 }
