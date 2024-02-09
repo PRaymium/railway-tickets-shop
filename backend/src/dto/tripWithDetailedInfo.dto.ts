@@ -1,22 +1,28 @@
+import Carriage from 'src/carriage/dto/carriage.dto';
+import City from 'src/city/dto/city.dto';
+import Locomotive from 'src/locomotive/dto/locomotive.dto';
+import Train from 'src/train/dto/train.dto';
+import Trip from 'src/trip/dto/trip.dto';
+
 export default class TripWithDetailedInfo {
-  id: string;
-  departureDate: Date;
-  destinationDate: Date;
-  departureCity: string;
-  destinationCity: string;
+  id: Trip['id'];
+  departureDate: Trip['departureDate'];
+  destinationDate: Trip['destinationDate'];
+  departureCityName: City['name'];
+  destinationCityName: City['name'];
   train: {
-    id: string;
+    id: Train['id'];
     locomotive: {
-      id: string;
-      type: number;
-      name: string;
+      id: Locomotive['id'];
+      type: Locomotive['type'];
+      name: Locomotive['name'];
     };
     carriages: {
-      id: string;
-      type: number;
-      free_places: {
+      id: Carriage['id'];
+      type: Carriage['type'];
+      freePlaces: {
         count: number;
-        min_price: number;
+        minPrice: number;
       };
     }[];
   };

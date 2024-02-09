@@ -3,7 +3,7 @@
     :grid="$q.screen.xs"
     :columns="columns"
     :rows="rows"
-    row-key="id"
+    :row-key="(row: TripWithFreePlacesInfo) => row.id.toString()"
     :binary-state-sort="true"
     :loading="isLoading"
     :pagination="{
@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { QTableProps, useQuasar } from 'quasar';
-import TripModal from 'components/TripModal.vue';
+import TripModal, { TripModalProps } from 'components/TripModal.vue';
 import Api from 'src/api/api';
 import getFormattedDate from 'src/utils/getFormattedDate';
 import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
@@ -30,7 +30,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'departure',
     label: 'Пункт отправления',
-    field: 'departureCity',
+    field: (row: TripWithFreePlacesInfo) => row.departureCityName,
     required: true,
     sortable: true,
     align: 'center',
@@ -38,7 +38,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'destination',
     label: 'Пункт назначения',
-    field: 'destinationCity',
+    field: (row: TripWithFreePlacesInfo) => row.destinationCityName,
     required: true,
     sortable: true,
     align: 'center',
@@ -46,7 +46,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'departureDate',
     label: 'Дата отправления',
-    field: 'departureDate',
+    field: (row: TripWithFreePlacesInfo) => row.departureDate,
     required: true,
     sortable: true,
     align: 'center',
@@ -55,7 +55,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'destinationDate',
     label: 'Дата прибытия',
-    field: 'destinationDate',
+    field: (row: TripWithFreePlacesInfo) => row.destinationDate,
     required: true,
     sortable: true,
     align: 'center',
@@ -64,7 +64,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'freePlaces',
     label: 'Количество свободных мест',
-    field: 'freePlaces',
+    field: (row: TripWithFreePlacesInfo) => row.freePlaces,
     required: true,
     sortable: true,
     align: 'center',
@@ -72,7 +72,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'price',
     label: 'Стоимость',
-    field: 'minPrice',
+    field: (row: TripWithFreePlacesInfo) => row.minPrice,
     required: true,
     sortable: true,
     align: 'center',
@@ -93,7 +93,7 @@ function onRowClick(row: TripWithFreePlacesInfo) {
     component: TripModal,
     componentProps: {
       id: row.id,
-    },
+    } as TripModalProps,
   });
 }
 </script>

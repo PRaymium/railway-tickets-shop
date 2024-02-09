@@ -12,16 +12,16 @@ export class CarriageService {
   async findManyWithFreePlacesInfoByTrainId(trainId: number) {
     const carriages = await this.prisma.carriage.findMany({
       include: {
-        seat: {
+        seats: {
           where: {
-            seat_ticket: {
+            seat_tickets: {
               some: {
                 is_buyed: false,
               },
             },
           },
           select: {
-            seat_ticket: {
+            seat_tickets: {
               where: {
                 train_id: trainId,
               },
@@ -42,8 +42,8 @@ export class CarriageService {
     });
 
     const res = carriages.map((carriage) => {
-      const prices = carriage.seat.reduce<number[]>((acc, item) => {
-        acc.push(item.seat_ticket[0].price);
+      const prices = carriage.seats.reduce<number[]>((acc, item) => {
+        acc.push(item.seat_tickets[0].price);
         return acc;
       }, []);
 
@@ -51,7 +51,7 @@ export class CarriageService {
         id: carriage.id,
         type: carriage.type,
         free_places: {
-          count: carriage.seat.length,
+          count: carriage.seats.length,
           min_price: Math.min(...prices),
         },
       };

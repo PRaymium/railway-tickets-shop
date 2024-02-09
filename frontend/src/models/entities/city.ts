@@ -1,6 +1,6 @@
-import Trip from 'src/trip/dto/trip.dto';
+import Trip from './trip';
 
-export default class City {
+export default interface City {
   id: number;
   name: string;
   tripsDeparture?: Trip[];

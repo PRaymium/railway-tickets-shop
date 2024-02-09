@@ -29,7 +29,7 @@ class Api {
     }
   }
 
-  async getTripWithDetailedInfoById(id: string) {
+  async getTripWithDetailedInfoById(id: number) {
     try {
       const response = await axios.get(`${URL}tripWithDetailedInfo/${id}`);
       const data: TripWithDetailedInfoApi = response.data;
@@ -44,7 +44,7 @@ class Api {
     }
   }
 
-  async getTicketsWithSeatInfoByCarriageId(carriageId: string) {
+  async getTicketsWithSeatInfoByCarriageId(carriageId: number) {
     try {
       const response = await axios.get(
         `${URL}seatTicket/withSeatInfo/${carriageId}`

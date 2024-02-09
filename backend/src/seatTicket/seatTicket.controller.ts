@@ -27,15 +27,15 @@ export class SeatTicketController {
 
     const res: TicketWithSeatInfo[] = data.map((ticket) => {
       return {
-        id: ticket.id.toString(),
+        id: ticket.id,
         price: ticket.price,
-        is_buyed: ticket.is_buyed,
-        carriageId: ticket.seat.carriage_id.toString(),
+        isBuyed: ticket.is_buyed,
 
         seat: {
-          id: ticket.seat.id.toString(),
-          number: ticket.seat.num,
+          id: ticket.seat.id,
+          number: ticket.seat.number,
           position: ticket.seat.position,
+          carriageId: ticket.seat.carriage_id,
         },
       };
     });

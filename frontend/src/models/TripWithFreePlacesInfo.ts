@@ -1,8 +1,11 @@
+import City from './entities/city';
+import Trip from './entities/trip';
+
 interface TripWithFreePlacesInfoBase {
-  id: string;
-  departureCity: string;
-  destinationCity: string;
-  trainId: string;
+  id: Trip['id'];
+  departureCityName: City['name'];
+  destinationCityName: City['name'];
+  trainId: Trip['trainId'];
   freePlaces: number;
   minPrice: number;
 }
@@ -13,6 +16,6 @@ export interface TripWithFreePlacesInfoApi extends TripWithFreePlacesInfoBase {
 }
 
 export interface TripWithFreePlacesInfo extends TripWithFreePlacesInfoBase {
-  departureDate: Date;
-  destinationDate: Date;
+  departureDate: Trip['departureDate'];
+  destinationDate: Trip['destinationDate'];
 }

@@ -18,14 +18,14 @@ export class AppController {
 
     const res: TripWithFreePlacesInfo[] = data.map((trip) => {
       return {
-        id: trip.id.toString(),
-        departureCity: trip.departure_city.name,
-        destinationCity: trip.destination_city.name,
+        id: trip.id,
+        departureCityName: trip.departure_city.name,
+        destinationCityName: trip.destination_city.name,
         departureDate: trip.departure_date,
         destinationDate: trip.destination_date,
         freePlaces: trip.free_places_info.count,
         minPrice: trip.free_places_info.min_price,
-        trainId: trip.train_id.toString(),
+        trainId: trip.train_id,
       };
     });
 
@@ -39,23 +39,30 @@ export class AppController {
     const trip = await this.appService.findTripWithDetailedInfoById(+id);
 
     const res = {
-      id: trip.id.toString(),
-      departureCity: trip.departure_city.name,
-      destinationCity: trip.destination_city.name,
+      id: trip.id,
+      departureCityName: trip.departure_city.name,
+      destinationCityName: trip.destination_city.name,
       departureDate: trip.departure_date,
       destinationDate: trip.destination_date,
       train: {
-        id: trip.train_id.toString(),
+        id: trip.train_id,
         locomotive: {
-          id: trip.train.locomotive_id.toString(),
+          id: trip.train.locomotive_id,
           type: trip.train.locomotive.type,
           name: trip.train.locomotive.name,
         },
         carriages: trip.carriages.map((carriage) => {
-          return { ...carriage, id: carriage.id.toString() };
+          return {
+            id: carriage.id,
+            type: carriage.type,
+            freePlaces: {
+              count: carriage.free_places.count,
+              minPrice: carriage.free_places.min_price,
+            },
+          };
         }),
       },
-    };
+    } as TripWithDetailedInfo;
 
     return res;
   }

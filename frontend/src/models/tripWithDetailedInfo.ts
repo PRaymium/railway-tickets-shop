@@ -1,3 +1,9 @@
+import Carriage from './entities/carriage';
+import City from './entities/city';
+import Locomotive from './entities/locomotive';
+import Train from './entities/train';
+import Trip from './entities/trip';
+
 export enum CarriageTypes {
   'Сидячий' = 1,
   'Плацкарт' = 2,
@@ -6,22 +12,22 @@ export enum CarriageTypes {
 }
 
 interface TripWithDetailedInfoBase {
-  id: string;
-  departureCity: string;
-  destinationCity: string;
+  id: Trip['id'];
+  departureCityName: City['name'];
+  destinationCityName: City['name'];
   train: {
-    id: string;
+    id: Train['id'];
     locomotive: {
-      id: string;
-      type: number;
-      name: string;
+      id: Locomotive['id'];
+      type: Locomotive['type'];
+      name: Locomotive['name'];
     };
     carriages: {
-      id: string;
+      id: Carriage['id'];
       type: CarriageTypes;
-      free_places: {
+      freePlaces: {
         count: number;
-        min_price: number;
+        minPrice: number;
       };
     }[];
   };
@@ -33,6 +39,6 @@ export interface TripWithDetailedInfoApi extends TripWithDetailedInfoBase {
 }
 
 export interface TripWithDetailedInfo extends TripWithDetailedInfoBase {
-  departureDate: Date;
-  destinationDate: Date;
+  departureDate: Trip['departureDate'];
+  destinationDate: Trip['destinationDate'];
 }
