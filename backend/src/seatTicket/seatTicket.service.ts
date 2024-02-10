@@ -27,21 +27,6 @@ export class SeatTicketService {
     });
   }
 
-  async getTicketsWithSeatInfoByCarriageId(carriageId: number) {
-    return this.prisma.seat_ticket.findMany({
-      include: {
-        seat: true,
-      },
-      where: {
-        seat: {
-          is: {
-            carriage_id: carriageId,
-          },
-        },
-      },
-    });
-  }
-
   async buyTicketsByIds(ticketsIds: number[]) {
     const buyedTickets = await this.prisma.seat_ticket.findMany({
       where: {

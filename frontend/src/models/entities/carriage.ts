@@ -1,4 +1,4 @@
-import Seat from './seat';
+import { Seat } from './seat';
 import Train from './train';
 
 export default interface Carriage {

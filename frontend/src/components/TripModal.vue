@@ -50,10 +50,18 @@
                   <q-space />
                   <div class="col-auto text-right">
                     <div class="text-subtitle1">
-                      Свободных мест: <b>{{ carriage.freePlaces.count }}</b>
+                      Свободных мест:
+                      <b>{{
+                        freePlacesInfoByCarriageId[carriage.id]?.places ??
+                        carriage.freePlaces.count
+                      }}</b>
                     </div>
                     <div class="text-subtitle1">
-                      от <b>{{ carriage.freePlaces.minPrice }}</b
+                      от
+                      <b>{{
+                        freePlacesInfoByCarriageId[carriage.id]?.minPrice ??
+                        carriage.freePlaces.minPrice
+                      }}</b
                       >₽
                     </div>
                   </div>
@@ -83,7 +91,7 @@
                     flat
                     :columns="carriageTicketsTableColumns[carriage.type]"
                     :rows="displayedCarriageTicketsInfo[carriage.id]"
-                    :row-key="(row: TicketWithSeatInfo) => row.id.toString()"
+                    :row-key="(row: CarriageWithSeatsAndTicket['seats'][0]) => row.id.toString()"
                     :binary-state-sort="true"
                     selection="multiple"
                     v-model:selected="selectedTicketsRaw"
@@ -91,7 +99,6 @@
                       rowsPerPage: 20,
                     }"
                     :loading="ticketsTableLoadingStates[carriage.id]"
-                    @selection="console.log(selectedTicketsRaw)"
                   >
                   </q-table>
                 </q-card-section>
@@ -106,7 +113,8 @@
           <div class="text-h6 q-mb-md">Выбранные билеты:</div>
 
           <q-table
-            :dense="$q.screen.xs"
+            :grid="$q.screen.xs"
+            grid-header
             :columns="ticketsTableColumns"
             :rows="selectedTickets"
             :row-key="(row) => row.id.toString()"
@@ -116,23 +124,62 @@
               rowsPerPage: 0,
             }"
             no-data-label="Выберите билеты"
+            ref="selectedTicketsTableRef"
           >
             <template #body-cell-remove="props">
               <q-td :props="props">
                 <q-btn
-                  dense
                   flat
                   icon="delete"
                   @click="ticketRemoveHandler(props.rowIndex)"
                 ></q-btn>
               </q-td>
             </template>
+
+            <template #header v-if="$q.screen.xs">
+              <table-sort-select
+                :columns="
+                  ticketsTableColumns?.filter((col) => col.name !== 'remove')
+                "
+                :table-ref="selectedTicketsTableRef"
+                @select="(value) => selectedTicketsTableRef?.sort(value)"
+              />
+            </template>
+
+            <template v-slot:item="props">
+              <div
+                class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3 grid-style-transition"
+              >
+                <q-card bordered flat>
+                  <q-list dense>
+                    <q-item
+                      v-for="col in props.cols?.filter(
+                        (col: any) => col.name !== 'remove'
+                      )"
+                      :key="col.name"
+                    >
+                      <q-item-section>
+                        <q-item-label>{{ col.label }}</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-item-label>{{ col.value }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                  <q-btn
+                    class="full-width text-caption q-mt-sm"
+                    @click="ticketRemoveHandler(props.rowIndex)"
+                    >Удалить</q-btn
+                  >
+                </q-card>
+              </div>
+            </template>
           </q-table>
         </q-card-section>
 
         <q-card-actions>
           <q-btn
-            class="dialog-action-btn"
+            class="full-width"
             size="1rem"
             color="primary"
             label="Купить"
@@ -142,10 +189,42 @@
       </template>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="buyErrorModal" persistent>
+    <q-card>
+      <q-card-section>
+        <div class="text-h6">Ошибка при покупке</div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <div>Некоторые билеты недоступны для покупки:</div>
+        <div v-for="ticket of buyErrorTickets" :key="ticket.id">
+          {{ `Билет №${ticket?.number} в вагоне №${ticket?.carriage.number}` }}
+        </div>
+        <div class="q-mt-md">
+          Будет произведено обновление доступных билетов
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          label="Обновить данные"
+          @click="updateTicketsList()"
+          v-close-popup
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { QTableProps, useDialogPluginComponent } from 'quasar';
+import {
+  QTable,
+  QTableProps,
+  useDialogPluginComponent,
+  useQuasar,
+} from 'quasar';
 import { computed, ref } from 'vue';
 import getFormattedDate from 'src/utils/getFormattedDate';
 import Api from 'src/api/api';
@@ -154,7 +233,10 @@ import {
   TripWithDetailedInfo,
   CarriageTypes,
 } from 'src/models/tripWithDetailedInfo';
-import TicketWithSeatInfo from 'src/models/ticketWithSeatInfo';
+import { LocomotiveTypes } from 'src/models/entities/locomotive';
+import { SeatPositionType } from 'src/models/entities/seat';
+import CarriageWithSeatsAndTicket from 'src/models/carriageWithSeatsAndTicket';
+import TableSortSelect from './TableSortSelect.vue';
 
 export interface TripModalProps {
   id: number;
@@ -164,23 +246,10 @@ const props = defineProps<TripModalProps>();
 
 defineEmits([...useDialogPluginComponent.emits]);
 
+const $q = useQuasar();
+
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
   useDialogPluginComponent();
-// dialogRef      - Vue ref to be applied to QDialog
-// onDialogHide   - Function to be used as handler for @hide on QDialog
-// onDialogOK     - Function to call to settle dialog with "ok" outcome
-//                    example: onDialogOK() - no payload
-//                    example: onDialogOK({ /*...*/ }) - with payload
-// onDialogCancel - Function to call to settle dialog with "cancel" outcome
-
-// this is part of our example (so not required)
-function onOKClick() {
-  // on OK, it is REQUIRED to
-  // call onDialogOK (with optional payload)
-  onDialogOK();
-  // or with payload: onDialogOK({ ... })
-  // ...and it will also hide the dialog automatically
-}
 
 const isLoading = ref(true);
 
@@ -193,12 +262,6 @@ const carriageExpandedStates = ref<
 const ticketsTableLoadingStates = ref<
   Record<TripWithDetailedInfo['train']['carriages'][0]['id'], boolean>
 >({});
-
-enum LocomotiveTypes {
-  'Стандартный' = 1,
-  'Скоростной' = 2,
-  'Сверхскоростной' = 3,
-}
 
 const tripInfoList = ref<{ label: string; value: string }[]>([]);
 
@@ -244,11 +307,6 @@ Api.getTripWithDetailedInfoById(props.id).then((data) => {
   isLoading.value = false;
 });
 
-enum SeatPositionType {
-  'Нижнее' = 0,
-  'Верхнее' = 1,
-}
-
 // 1 - сидячий вагон
 // 2 - плацкарт
 // 3 - купе
@@ -259,7 +317,7 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
       {
         name: 'number',
         label: 'Место',
-        field: (row: TicketWithSeatInfo) => row.seat.number,
+        field: (row: CarriageWithSeatsAndTicket['seats'][0]) => row.number,
         required: true,
         sortable: true,
         align: 'center',
@@ -267,7 +325,8 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
       {
         name: 'price',
         label: 'Стоимость',
-        field: (row: TicketWithSeatInfo) => row.price,
+        field: (row: CarriageWithSeatsAndTicket['seats'][0]) =>
+          row.seatTicket.price,
         required: true,
         sortable: true,
         align: 'center',
@@ -278,7 +337,7 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
       {
         name: 'number',
         label: 'Место',
-        field: (row: TicketWithSeatInfo) => row.seat.number,
+        field: (row: CarriageWithSeatsAndTicket['seats'][0]) => row.number,
         required: true,
         sortable: true,
         align: 'center',
@@ -286,7 +345,7 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
       {
         name: 'position',
         label: 'Расположение',
-        field: (row: TicketWithSeatInfo) => row.seat.position,
+        field: (row: CarriageWithSeatsAndTicket['seats'][0]) => row.position,
         required: true,
         sortable: true,
         align: 'center',
@@ -295,7 +354,8 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
       {
         name: 'price',
         label: 'Стоимость',
-        field: (row: TicketWithSeatInfo) => row.price,
+        field: (row: CarriageWithSeatsAndTicket['seats'][0]) =>
+          row.seatTicket.price,
         required: true,
         sortable: true,
         align: 'center',
@@ -306,8 +366,34 @@ const carriageTicketsTableColumns = ref<Record<number, QTableProps['columns']>>(
 );
 
 const carriageTicketsInfo = ref<
-  Record<TicketWithSeatInfo['seat']['carriageId'], TicketWithSeatInfo[]>
->({});
+  Record<CarriageWithSeatsAndTicket['id'], CarriageWithSeatsAndTicket['seats']>
+>([]);
+
+type freePlacesInfoByCarriageIdType = Record<
+  CarriageWithSeatsAndTicket['id'],
+  { places: number; minPrice: number }
+>;
+
+const freePlacesInfoByCarriageId = computed<freePlacesInfoByCarriageIdType>(
+  () => {
+    const res: freePlacesInfoByCarriageIdType = {};
+    Object.keys(carriageTicketsInfo.value).forEach((key) => {
+      res[+key] = {
+        places: carriageTicketsInfo.value[+key].reduce<number>(
+          (acc, seat) => acc + (!seat.seatTicket.isBuyed ? 1 : 0),
+          0
+        ),
+        minPrice: Math.min(
+          ...carriageTicketsInfo.value[+key].map(
+            (seat) => seat.seatTicket.price
+          )
+        ),
+      };
+    });
+
+    return res;
+  }
+);
 
 const displayedCarriageTicketsInfo = computed<typeof carriageTicketsInfo.value>(
   () => {
@@ -316,7 +402,7 @@ const displayedCarriageTicketsInfo = computed<typeof carriageTicketsInfo.value>(
 
     keys.forEach((key: string) => {
       res[+key] = carriageTicketsInfo.value[+key].filter(
-        (ticket) => !ticket.isBuyed
+        (ticket) => !ticket.seatTicket.isBuyed
       );
     });
 
@@ -329,16 +415,22 @@ async function carriageClickHandler(carriageId: number) {
     !carriageExpandedStates.value[carriageId];
 
   if (!carriageTicketsInfo.value[carriageId]) {
-    const data = await Api.getTicketsWithSeatInfoByCarriageId(carriageId);
+    if (!trip.value) return;
+
+    const data = await Api.getCarriageWithSeatsAndTicket(trip.value.train.id, [
+      carriageId,
+    ]);
 
     if (!data) return;
 
-    carriageTicketsInfo.value[carriageId] = data;
+    carriageTicketsInfo.value[carriageId] = data[0].seats;
     ticketsTableLoadingStates.value[carriageId] = false;
   }
 }
 
-const selectedTicketsRaw = ref<TicketWithSeatInfo[]>([]);
+const selectedTicketsTableRef = ref<QTable>();
+
+const selectedTicketsRaw = ref<CarriageWithSeatsAndTicket['seats']>([]);
 
 const ticketsTableColumns = ref<QTableProps['columns']>([
   {
@@ -395,12 +487,12 @@ const ticketsTableColumns = ref<QTableProps['columns']>([
 ]);
 
 interface Ticket {
-  id: TicketWithSeatInfo['id'];
-  number: TicketWithSeatInfo['seat']['number'];
-  position: SeatPositionType;
-  price: TicketWithSeatInfo['price'];
+  id: CarriageWithSeatsAndTicket['seats'][0]['seatTicket']['id'];
+  number: CarriageWithSeatsAndTicket['seats'][0]['number'];
+  position: CarriageWithSeatsAndTicket['seats'][0]['position'];
+  price: CarriageWithSeatsAndTicket['seats'][0]['seatTicket']['price'];
   carriage: {
-    id: TicketWithSeatInfo['seat']['carriageId'];
+    id: CarriageWithSeatsAndTicket['id'];
     type: CarriageTypes;
     number: number;
   };
@@ -412,7 +504,7 @@ const selectedTickets = computed<Ticket[]>(() => {
     let carriageType = CarriageTypes.Сидячий;
 
     trip.value?.train.carriages.forEach((carriage, idx) => {
-      if (carriage.id === selectedTicket.seat.carriageId) {
+      if (carriage.id === selectedTicket.carriageId) {
         carriageNumber = idx + 1;
         carriageType = carriage.type;
       }
@@ -420,11 +512,11 @@ const selectedTickets = computed<Ticket[]>(() => {
 
     return {
       id: selectedTicket.id,
-      number: selectedTicket.seat.number,
-      position: selectedTicket.seat.position,
-      price: selectedTicket.price,
+      number: selectedTicket.number,
+      position: selectedTicket.position,
+      price: selectedTicket.seatTicket.price,
       carriage: {
-        id: selectedTicket.seat.carriageId,
+        id: selectedTicket.carriageId,
         type: carriageType,
         number: carriageNumber,
       },
@@ -436,11 +528,10 @@ function ticketRemoveHandler(ticketIdx: number) {
   selectedTicketsRaw.value.splice(ticketIdx, 1);
 }
 
-const isBuyingLoading = ref(false);
+const buyErrorModal = ref(false);
+const buyErrorTickets = ref<Ticket[]>([]);
 
 async function buyTicketsHandler() {
-  isBuyingLoading.value = true;
-
   const ticketsIds = selectedTickets.value.reduce<number[]>(
     (acc, ticket: Ticket) => {
       acc.push(ticket.id);
@@ -452,18 +543,42 @@ async function buyTicketsHandler() {
   if (data?.status === 'busy') {
     if (!data.ticketsIds) return;
 
-    let alertString = '\n';
+    buyErrorTickets.value.length = 0;
 
     data.ticketsIds.forEach((ticketId) => {
       const ticket = selectedTickets.value.find(
         (ticket) => ticket.id === ticketId
       );
-
-      const string = `Билет №${ticket?.number} в вагоне №${ticket?.carriage.number}`;
-      alertString += string + '\n';
+      if (ticket) buyErrorTickets.value.push(ticket);
     });
-    alert(`Некоторые билеты недоступны для покупки:${alertString}`);
+
+    buyErrorModal.value = true;
+  } else {
+    $q.notify({
+      message: 'Билеты успешно приобретены!',
+      type: 'positive',
+      position: 'top',
+    });
+    onDialogOK();
   }
+}
+
+async function updateTicketsList() {
+  const carriagesIds = Object.keys(carriageTicketsInfo.value).map(
+    (key) => +key
+  );
+  if (!trip.value) return;
+
+  const data = await Api.getCarriageWithSeatsAndTicket(
+    trip.value.train.id,
+    carriagesIds
+  );
+
+  if (!data) return;
+
+  data.forEach((carriage) => {
+    carriageTicketsInfo.value[carriage.id] = carriage.seats;
+  });
 }
 </script>
 
@@ -478,9 +593,5 @@ async function buyTicketsHandler() {
   &:not(:last-child) {
     margin-bottom: map.get($space-lg, y);
   }
-}
-
-.dialog-action-btn {
-  width: 100%;
 }
 </style>

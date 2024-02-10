@@ -59,4 +59,49 @@ export class CarriageService {
 
     return res;
   }
+
+  async getAllSeatsWithTicketsByTrainId(
+    trainId: number,
+    carriagesIds: number[],
+  ) {
+    return this.prisma.carriage.findMany({
+      include: {
+        seats: {
+          where: {
+            seat_tickets: {
+              some: {
+                train_id: trainId,
+              },
+            },
+          },
+          include: {
+            seat_tickets: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: carriagesIds,
+        },
+      },
+    });
+
+    // const res = carriages.map((carriage) => {
+    //   const prices = carriage.seats.reduce<number[]>((acc, item) => {
+    //     acc.push(item.seat_tickets[0].price);
+    //     return acc;
+    //   }, []);
+
+    //   return {
+    //     id: carriage.id,
+    //     type: carriage.type,
+    //     free_places: {
+    //       count: carriage.seats.length,
+    //       min_price: Math.min(...prices),
+    //     },
+    //   };
+    // });
+
+    //return res;
+  }
 }

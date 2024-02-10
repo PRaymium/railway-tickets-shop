@@ -1,5 +1,5 @@
 import Carriage from './carriage';
-import Locomotive from './locomotive';
+import { Locomotive } from './locomotive';
 import SeatTicket from './seatTicket';
 import Trip from './trip';
 

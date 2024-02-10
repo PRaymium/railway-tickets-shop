@@ -1,6 +1,15 @@
 <template>
+  <div v-if="$q.screen.lt.md" class="q-py-md">
+    <table-sort-select
+      :columns="columns"
+      :table-ref="tableRef"
+      @select="(value) => tableRef?.sort(value)"
+    />
+  </div>
+
   <q-table
-    :grid="$q.screen.xs"
+    ref="tableRef"
+    :grid="$q.screen.lt.md"
     :columns="columns"
     :rows="rows"
     :row-key="(row: TripWithFreePlacesInfo) => row.id.toString()"
@@ -15,12 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { QTableProps, useQuasar } from 'quasar';
+import { computed, ref } from 'vue';
+import { QTable, QTableProps, useQuasar } from 'quasar';
 import TripModal, { TripModalProps } from 'components/TripModal.vue';
 import Api from 'src/api/api';
 import getFormattedDate from 'src/utils/getFormattedDate';
 import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
+import TableSortSelect from './TableSortSelect.vue';
 
 const $q = useQuasar();
 
@@ -96,4 +106,6 @@ function onRowClick(row: TripWithFreePlacesInfo) {
     } as TripModalProps,
   });
 }
+
+const tableRef = ref<QTable>();
 </script>

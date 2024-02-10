@@ -1,8 +1,14 @@
 import Train from './train';
 
-export default interface Locomotive {
+export enum LocomotiveTypes {
+  'Стандартный' = 1,
+  'Скоростной' = 2,
+  'Сверхскоростной' = 3,
+}
+
+export interface Locomotive {
   id: number;
-  type: number;
+  type: LocomotiveTypes;
   name: string;
   trains?: Train[];
 }
