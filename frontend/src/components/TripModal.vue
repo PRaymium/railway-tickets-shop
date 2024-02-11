@@ -39,31 +39,28 @@
             :key="carriage.id"
           >
             <q-card-section class="row items-center">
-              <div class="col">
-                <div class="row">
-                  <div class="col-auto">
-                    <div class="text-h6">Вагон №{{ idx + 1 }}</div>
-                    <div class="text-caption">
-                      {{ CarriageTypes[carriage.type] }}
-                    </div>
+              <div class="carriage-info">
+                <div class="carriage-info__left">
+                  <div class="text-h6">Вагон №{{ idx + 1 }}</div>
+                  <div class="text-caption">
+                    {{ CarriageTypes[carriage.type] }}
                   </div>
-                  <q-space />
-                  <div class="col-auto text-right">
-                    <div class="text-subtitle1">
-                      Свободных мест:
-                      <b>{{
-                        freePlacesInfoByCarriageId[carriage.id]?.places ??
-                        carriage.freePlaces.count
-                      }}</b>
-                    </div>
-                    <div class="text-subtitle1">
-                      от
-                      <b>{{
-                        freePlacesInfoByCarriageId[carriage.id]?.minPrice ??
-                        carriage.freePlaces.minPrice
-                      }}</b
-                      >₽
-                    </div>
+                </div>
+                <div class="carriage-info__right">
+                  <div class="text-subtitle1">
+                    Свободных мест:
+                    <b>{{
+                      freePlacesInfoByCarriageId[carriage.id]?.places ??
+                      carriage.freePlaces.count
+                    }}</b>
+                  </div>
+                  <div class="text-subtitle1">
+                    от
+                    <b>{{
+                      freePlacesInfoByCarriageId[carriage.id]?.minPrice ??
+                      carriage.freePlaces.minPrice
+                    }}</b
+                    >₽
                   </div>
                 </div>
               </div>
@@ -592,6 +589,30 @@ async function updateTicketsList() {
 .carriage-card {
   &:not(:last-child) {
     margin-bottom: map.get($space-lg, y);
+  }
+}
+
+.carriage-info {
+  display: flex;
+  justify-content: space-between;
+  flex-grow: 1;
+
+  @media screen and (max-width: 450px) {
+    flex-direction: column;
+  }
+
+  &__left {
+    @media screen and (max-width: 450px) {
+      margin-bottom: map.get($space-sm, y);
+    }
+  }
+
+  &__right {
+    text-align: right;
+
+    @media screen and (max-width: 450px) {
+      text-align: left;
+    }
   }
 }
 </style>
