@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
+import Train from 'src/train/dto/train.dto';
 
 @Injectable()
 export class SeatTicketService {
@@ -9,22 +11,19 @@ export class SeatTicketService {
     return this.prisma.seat_ticket.findMany();
   }
 
-  async getFreePlacesInfoByTrainId(id: number[]) {
-    return this.prisma.seat_ticket.groupBy({
-      by: ['train_id'],
-      where: {
-        train_id: {
-          in: id,
-        },
-        is_buyed: false,
-      },
-      _min: {
-        price: true,
-      },
-      _count: {
-        id: true,
-      },
-    });
+  async getFreePlacesInfoByTrainId(trainsId: number[]) {
+    class FreePlacesInfo {
+      train_id: Train['id'];
+      min_price: number;
+      count: number;
+    }
+
+    return this.prisma.$queryRaw<FreePlacesInfo[]>`
+      SELECT MIN(ST.price) as min_price, COUNT(ST.id) as count, ST.train_id
+        FROM seat_ticket as ST
+	      WHERE ST.train_id IN (${Prisma.join(trainsId)}) AND ST.is_buyed = 0
+	    GROUP BY ST.train_id
+    `;
   }
 
   async buyTicketsByIds(ticketsIds: number[]) {

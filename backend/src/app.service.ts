@@ -16,7 +16,7 @@ export class AppService {
   }
 
   async findAllTripsWithFreePlacesInfo() {
-    const trips = await this.tripService.findAll();
+    let trips = await this.tripService.findAll();
 
     const trainIds = trips.reduce<number[]>((acc: number[], trip) => {
       acc.push(trip.train_id);
@@ -26,6 +26,10 @@ export class AppService {
     const freePlacesInfo =
       await this.seatTicketService.getFreePlacesInfoByTrainId(trainIds);
 
+    trips = trips.filter((trip) =>
+      freePlacesInfo.some((item) => item.train_id == trip.train_id),
+    );
+
     const results = trips.map((trip) => {
       const placesInfoItem = freePlacesInfo.find(
         (item) => item.train_id === trip.train_id,
@@ -33,8 +37,8 @@ export class AppService {
 
       return {
         free_places_info: {
-          count: placesInfoItem._count.id,
-          min_price: placesInfoItem._min.price,
+          count: placesInfoItem.count,
+          min_price: placesInfoItem.min_price,
         },
         ...trip,
       };

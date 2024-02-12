@@ -34,9 +34,9 @@ export class CarriageController {
             position: seat.position,
             carriageId: seat.carriage_id,
             seatTicket: {
-              id: seat.seat_tickets[0].id,
-              price: seat.seat_tickets[0].price,
-              isBuyed: seat.seat_tickets[0].is_buyed,
+              id: seat.seat_ticket.id,
+              price: seat.seat_ticket.price,
+              isBuyed: seat.seat_ticket.is_buyed,
             },
           };
         }),

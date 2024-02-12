@@ -15,5 +15,9 @@ async function bootstrap() {
   SwaggerModule.setup('swagger', app, document);
 
   await app.listen(3000);
+
+  (BigInt.prototype as any).toJSON = function () {
+    return Number(this);
+  };
 }
 bootstrap();
