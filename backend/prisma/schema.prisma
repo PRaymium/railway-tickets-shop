@@ -31,12 +31,12 @@ model city {
 }
 
 model train {
-  id            Int           @id @default(autoincrement())
+  id            Int                 @id @default(autoincrement())
   trip          trip?
   locomotive_id Int
-  locomotive    locomotive    @relation(fields: [locomotive_id], references: [id])
+  locomotive    locomotive          @relation(fields: [locomotive_id], references: [id])
   seat_tickets  seat_ticket[]
-  carriages     carriage[]    @relation("train_to_carriage")
+  carriages     train_to_carriage[]
 }
 
 model locomotive {
@@ -47,11 +47,21 @@ model locomotive {
 }
 
 model carriage {
-  id          Int     @id @default(autoincrement())
-  type        Int     @default(1)
+  id          Int                 @id @default(autoincrement())
+  type        Int                 @default(1)
   seats_count Int
   seats       seat[]
-  trains      train[] @relation("train_to_carriage")
+  trains      train_to_carriage[]
+}
+
+model train_to_carriage {
+  train_id        Int
+  train           train    @relation(fields: [train_id], references: [id])
+  carriage_id     Int
+  carriage        carriage @relation(fields: [carriage_id], references: [id])
+  carriage_number Int
+
+  @@id([train_id, carriage_id])
 }
 
 model seat {

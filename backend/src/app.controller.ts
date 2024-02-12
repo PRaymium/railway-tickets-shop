@@ -55,6 +55,7 @@ export class AppController {
           return {
             id: carriage.id,
             type: carriage.type,
+            number: carriage.number,
             freePlaces: {
               count: carriage.free_places.count,
               minPrice: carriage.free_places.min_price,

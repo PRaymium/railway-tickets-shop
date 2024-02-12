@@ -1,7 +1,8 @@
 import Carriage from './entities/carriage';
 import City from './entities/city';
-import Locomotive from './entities/locomotive';
+import { Locomotive } from './entities/locomotive';
 import Train from './entities/train';
+import TrainToCarriage from './entities/trainToCarriage';
 import Trip from './entities/trip';
 
 export enum CarriageTypes {
@@ -25,6 +26,7 @@ interface TripWithDetailedInfoBase {
     carriages: {
       id: Carriage['id'];
       type: CarriageTypes;
+      number: TrainToCarriage['carriageNumber'];
       freePlaces: {
         count: number;
         minPrice: number;

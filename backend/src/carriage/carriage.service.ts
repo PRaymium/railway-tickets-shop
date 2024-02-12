@@ -4,6 +4,7 @@ import Carriage from './dto/carriage.dto';
 import Seat from 'src/seat/dto/seat.dto';
 import SeatTicket from 'src/seatTicket/dto/seatTicket.dto';
 import { Prisma } from '@prisma/client';
+import TrainToCarriage from 'src/train_to_carriage/dto/train_to_carriage.dto';
 
 @Injectable()
 export class CarriageService {
@@ -17,17 +18,22 @@ export class CarriageService {
     type NewCarriage = {
       id: Carriage['id'];
       type: Carriage['type'];
+      number: TrainToCarriage['carriageNumber'];
       min_price: number;
       count: number;
     };
 
     const carriages: NewCarriage[] = await this.prisma.$queryRaw`
-      SELECT carriage.id, carriage.type, MIN(ST.price) AS min_price, 
+      SELECT carriage.id, carriage.type, 
+        T2C.carriage_number AS number, 
+        MIN(ST.price) AS min_price, 
         COUNT(ST.id) AS count
       FROM carriage
+	      JOIN train_to_carriage AS T2C ON T2C.carriage_id = carriage.id
 	      JOIN seat ON seat.carriage_id = carriage.id
 	      JOIN seat_ticket AS ST ON ST.seat_id = seat.id
-      WHERE ST.is_buyed = 0 AND ST.train_id = ${trainId}
+      WHERE ST.is_buyed = 0 
+        AND ST.train_id = ${trainId}
       GROUP BY carriage.id
     `;
 
@@ -35,6 +41,7 @@ export class CarriageService {
       return {
         id: carriage.id,
         type: carriage.type,
+        number: carriage.number,
         free_places: {
           count: carriage.count,
           min_price: carriage.min_price,
@@ -67,10 +74,10 @@ export class CarriageService {
 
     const data = await this.prisma.$queryRaw<any[]>`
     SELECT 
-    CR.id, CR.type, 
-    seat.id as seat_id_main, seat.number, seat.position, 
-	    seat.carriage_id, 
-    ST.id as seat_ticket_id_main, ST.price, ST.is_buyed
+      CR.id, CR.type, 
+      seat.id as seat_id_main, seat.number, seat.position, 
+	      seat.carriage_id, 
+      ST.id as seat_ticket_id_main, ST.price, ST.is_buyed
 
     FROM carriage as CR
 	    JOIN seat ON seat.carriage_id = CR.id

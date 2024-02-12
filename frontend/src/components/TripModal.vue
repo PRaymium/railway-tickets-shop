@@ -35,13 +35,13 @@
 
           <q-card
             class="carriage-card"
-            v-for="(carriage, idx) in trip?.train.carriages"
+            v-for="carriage in trip?.train.carriages"
             :key="carriage.id"
           >
             <q-card-section class="row items-center">
               <div class="carriage-info">
                 <div class="carriage-info__left">
-                  <div class="text-h6">Вагон №{{ idx + 1 }}</div>
+                  <div class="text-h6">Вагон №{{ carriage.number }}</div>
                   <div class="text-caption">
                     {{ CarriageTypes[carriage.type] }}
                   </div>
@@ -497,15 +497,9 @@ interface Ticket {
 
 const selectedTickets = computed<Ticket[]>(() => {
   return selectedTicketsRaw.value.map<Ticket>((selectedTicket) => {
-    let carriageNumber = 0;
-    let carriageType = CarriageTypes.Сидячий;
-
-    trip.value?.train.carriages.forEach((carriage, idx) => {
-      if (carriage.id === selectedTicket.carriageId) {
-        carriageNumber = idx + 1;
-        carriageType = carriage.type;
-      }
-    });
+    const foundTrip = trip.value?.train.carriages.find(
+      (carriage) => carriage.id === selectedTicket.carriageId
+    );
 
     return {
       id: selectedTicket.id,
@@ -514,8 +508,8 @@ const selectedTickets = computed<Ticket[]>(() => {
       price: selectedTicket.seatTicket.price,
       carriage: {
         id: selectedTicket.carriageId,
-        type: carriageType,
-        number: carriageNumber,
+        type: foundTrip?.type,
+        number: foundTrip?.number,
       },
     } as Ticket;
   });
