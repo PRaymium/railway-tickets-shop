@@ -1,5 +1,4 @@
 import Carriage from './entities/carriage';
-import City from './entities/city';
 import { Locomotive } from './entities/locomotive';
 import Train from './entities/train';
 import TrainToCarriage from './entities/trainToCarriage';
@@ -12,10 +11,8 @@ export enum CarriageTypes {
   'СВ' = 4,
 }
 
-interface TripWithDetailedInfoBase {
+export interface TripWithDetailedInfo {
   id: Trip['id'];
-  departureCityName: City['name'];
-  destinationCityName: City['name'];
   train: {
     id: Train['id'];
     locomotive: {
@@ -33,14 +30,4 @@ interface TripWithDetailedInfoBase {
       };
     }[];
   };
-}
-
-export interface TripWithDetailedInfoApi extends TripWithDetailedInfoBase {
-  departureDate: string;
-  destinationDate: string;
-}
-
-export interface TripWithDetailedInfo extends TripWithDetailedInfoBase {
-  departureDate: Trip['departureDate'];
-  destinationDate: Trip['destinationDate'];
 }

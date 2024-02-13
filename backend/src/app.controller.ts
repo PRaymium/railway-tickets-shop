@@ -13,8 +13,8 @@ export class AppController {
   }
 
   @Get('tripsWithInfo')
-  async getAllTripsWithFreePlacesInfo(): Promise<TripWithFreePlacesInfo[]> {
-    const data = await this.appService.findAllTripsWithFreePlacesInfo();
+  async getFreeTripsWithFreePlacesInfo(): Promise<TripWithFreePlacesInfo[]> {
+    const data = await this.appService.findFreeTripsWithFreePlacesInfo();
 
     const res: TripWithFreePlacesInfo[] = data.map((trip) => {
       return {
@@ -25,7 +25,6 @@ export class AppController {
         destinationDate: trip.destination_date,
         freePlaces: trip.free_places_info.count,
         minPrice: trip.free_places_info.min_price,
-        trainId: trip.train_id,
       };
     });
 

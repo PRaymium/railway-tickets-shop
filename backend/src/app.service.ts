@@ -15,7 +15,7 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async findAllTripsWithFreePlacesInfo() {
+  async findFreeTripsWithFreePlacesInfo() {
     let trips = await this.tripService.findAll();
 
     const trainIds = trips.reduce<number[]>((acc: number[], trip) => {
@@ -34,6 +34,8 @@ export class AppService {
       const placesInfoItem = freePlacesInfo.find(
         (item) => item.train_id === trip.train_id,
       );
+
+      if (placesInfoItem.count === 0) return;
 
       return {
         free_places_info: {

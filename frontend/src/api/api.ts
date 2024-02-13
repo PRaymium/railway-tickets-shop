@@ -1,10 +1,7 @@
 import axios from 'axios';
 import BuyedTicket from 'src/models/buyedTicket';
 import CarriageWithSeatsAndTicket from 'src/models/carriageWithSeatsAndTicket';
-import {
-  TripWithDetailedInfoApi,
-  TripWithDetailedInfo,
-} from 'src/models/tripWithDetailedInfo';
+import { TripWithDetailedInfo } from 'src/models/tripWithDetailedInfo';
 import {
   TripWithFreePlacesInfo,
   TripWithFreePlacesInfoApi,
@@ -33,13 +30,8 @@ class Api {
   async getTripWithDetailedInfoById(id: number) {
     try {
       const response = await axios.get(`${URL}tripWithDetailedInfo/${id}`);
-      const data: TripWithDetailedInfoApi = response.data;
-      const res = {
-        ...data,
-        departureDate: new Date(data.departureDate),
-        destinationDate: new Date(data.destinationDate),
-      } as TripWithDetailedInfo;
-      return res;
+      const data: TripWithDetailedInfo = response.data;
+      return data;
     } catch (error) {
       console.error(error);
     }

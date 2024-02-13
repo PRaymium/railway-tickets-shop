@@ -8,7 +8,6 @@ export default class CarriageWithSeatsAndTicket {
     id: Seat['id'];
     number: Seat['number'];
     position: Seat['position'];
-    carriageId: Seat['carriageId'];
     seatTicket: {
       id: SeatTicket['id'];
       price: SeatTicket['price'];

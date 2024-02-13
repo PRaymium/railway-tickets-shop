@@ -32,7 +32,6 @@ export class CarriageController {
             id: seat.id,
             number: seat.number,
             position: seat.position,
-            carriageId: seat.carriage_id,
             seatTicket: {
               id: seat.seat_ticket.id,
               price: seat.seat_ticket.price,

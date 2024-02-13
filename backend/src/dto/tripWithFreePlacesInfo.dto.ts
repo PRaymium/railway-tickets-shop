@@ -7,7 +7,6 @@ export default class TripWithFreePlacesInfo {
   destinationDate: Trip['destinationDate'];
   departureCityName: City['name'];
   destinationCityName: City['name'];
-  trainId: Trip['trainId'];
   freePlaces: number;
   minPrice: number;
 }

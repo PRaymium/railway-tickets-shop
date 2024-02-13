@@ -67,12 +67,18 @@
 import { ComputedRef, computed, ref } from 'vue';
 import { QTable, QTableProps, useQuasar } from 'quasar';
 import TripModal, { TripModalProps } from 'components/TripModal.vue';
-import Api from 'src/api/api';
 import getFormattedDate from 'src/utils/getFormattedDate';
-import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
 import TableSortSelect from './TableSortSelect.vue';
+import { useTripsStore } from 'src/stores/tripsStore';
+import { storeToRefs } from 'pinia';
+
+import { TripWithFreePlacesInfo } from 'src/models/tripWithFreePlacesInfo';
+import City from 'src/models/entities/city';
+import Trip from 'src/models/entities/trip';
 
 const $q = useQuasar();
+
+const tripsStore = useTripsStore();
 
 const isLoading = ref(true);
 
@@ -82,7 +88,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'departure',
     label: 'Пункт отправления',
-    field: (row: TripWithFreePlacesInfo) => row.departureCityName,
+    field: (row: (typeof rows.value)[0]) => row.departureCityName,
     required: true,
     sortable: true,
     align: 'center',
@@ -90,7 +96,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'destination',
     label: 'Пункт назначения',
-    field: (row: TripWithFreePlacesInfo) => row.destinationCityName,
+    field: (row: (typeof rows.value)[0]) => row.destinationCityName,
     required: true,
     sortable: true,
     align: 'center',
@@ -98,7 +104,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'departureDate',
     label: 'Дата отправления',
-    field: (row: TripWithFreePlacesInfo) => row.departureDate,
+    field: (row: (typeof rows.value)[0]) => row.departureDate,
     required: true,
     sortable: true,
     align: 'center',
@@ -107,7 +113,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'destinationDate',
     label: 'Дата прибытия',
-    field: (row: TripWithFreePlacesInfo) => row.destinationDate,
+    field: (row: (typeof rows.value)[0]) => row.destinationDate,
     required: true,
     sortable: true,
     align: 'center',
@@ -116,7 +122,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'freePlaces',
     label: 'Количество свободных мест',
-    field: (row: TripWithFreePlacesInfo) => row.freePlaces,
+    field: (row: (typeof rows.value)[0]) => row.freePlaces,
     required: true,
     sortable: true,
     align: 'center',
@@ -124,7 +130,7 @@ const columns = ref<QTableProps['columns']>([
   {
     name: 'price',
     label: 'Стоимость',
-    field: (row: TripWithFreePlacesInfo) => row.minPrice,
+    field: (row: (typeof rows.value)[0]) => row.minPrice,
     required: true,
     sortable: true,
     align: 'center',
@@ -132,20 +138,54 @@ const columns = ref<QTableProps['columns']>([
   },
 ]);
 
-const rows = ref<TripWithFreePlacesInfo[]>([]);
+const { getFreeTrips: trips } = storeToRefs(tripsStore);
 
-Api.getTripsWithTicketInfo().then((data) => {
-  if (!data) return;
-  rows.value.push(...data);
+interface TableRow {
+  id: Trip['id'];
+  departureCityName: City['name'];
+  destinationCityName: City['name'];
+  freePlaces: number;
+  minPrice: number;
+  departureDate: Trip['departureDate'];
+  destinationDate: Trip['destinationDate'];
+}
+
+const rows = computed<TableRow[]>(() => {
+  if (!trips.value) return [];
+  else
+    return trips.value?.map<TableRow>((trip) => {
+      return {
+        id: trip.id,
+        departureCityName: trip.departureCityName,
+        departureDate: trip.departureDate,
+        destinationCityName: trip.destinationCityName,
+        destinationDate: trip.destinationDate,
+        freePlaces: tripsStore.getTotalFreePlacesInTrip[trip.id].count,
+        minPrice: tripsStore.getTotalFreePlacesInTrip[trip.id].minPrice,
+      } as TableRow;
+    });
+});
+
+tripsStore.fetchTrips().then(() => {
   isLoading.value = false;
 });
 
-function onRowClick(row: TripWithFreePlacesInfo) {
+async function updateTrips() {
+  isLoading.value = true;
+  await tripsStore.fetchTrips();
+  isLoading.value = false;
+}
+
+function onRowClick(row: TableRow) {
   $q.dialog({
     component: TripModal,
     componentProps: {
       id: row.id,
     } as TripModalProps,
+  }).onOk((obj) => {
+    if (obj?.updateTrips) {
+      updateTrips();
+    }
   });
 }
 
@@ -172,6 +212,8 @@ const filters = ref({
 
 const departureCityFilterOptions = computed<FilterItemType[]>(() => {
   let res: FilterItemType[] = [];
+
+  if (!rows.value) return [];
 
   if (!filters.value.selected[FiltersTypes.destinationCity]) {
     res = rows.value.map((row) => {
@@ -200,6 +242,8 @@ const departureCityFilterOptions = computed<FilterItemType[]>(() => {
 
 const destinationCityFilterOptions = computed<FilterItemType[]>(() => {
   let res: FilterItemType[] = [];
+
+  if (!rows.value) return [];
 
   if (!filters.value.selected[FiltersTypes.departureCity]) {
     res = rows.value.map((row) => {
@@ -254,9 +298,9 @@ type FilterTerm = {
 };
 
 function tripTableFiltering(
-  rows: readonly TripWithFreePlacesInfo[],
+  rows: readonly TableRow[],
   terms: FilterTerm[]
-): readonly TripWithFreePlacesInfo[] {
+): readonly TableRow[] {
   let rowsRes = rows;
 
   terms.forEach((term) => {

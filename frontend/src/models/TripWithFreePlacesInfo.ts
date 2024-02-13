@@ -5,7 +5,6 @@ interface TripWithFreePlacesInfoBase {
   id: Trip['id'];
   departureCityName: City['name'];
   destinationCityName: City['name'];
-  trainId: Trip['trainId'];
   freePlaces: number;
   minPrice: number;
 }

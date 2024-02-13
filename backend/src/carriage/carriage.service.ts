@@ -63,7 +63,6 @@ export class CarriageService {
         id: Seat['id'];
         number: Seat['number'];
         position: Seat['position'];
-        carriage_id: Seat['carriageId'];
         seat_ticket: {
           id: SeatTicket['id'];
           price: SeatTicket['price'];
@@ -76,7 +75,6 @@ export class CarriageService {
     SELECT 
       CR.id, CR.type, 
       seat.id as seat_id_main, seat.number, seat.position, 
-	      seat.carriage_id, 
       ST.id as seat_ticket_id_main, ST.price, ST.is_buyed
 
     FROM carriage as CR
@@ -98,7 +96,6 @@ export class CarriageService {
           id: row.seat_id_main,
           number: row.number,
           position: row.position,
-          carriage_id: row.carriage_id,
           seat_ticket: ticket,
         };
 
